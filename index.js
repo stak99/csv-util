@@ -62,16 +62,16 @@ fs.readdir('./files-todo', (err, files) => {
         fs.createReadStream(filePath)
             .pipe(csv())
             .on('data', (row) => {
-                delete row.Type;
-                delete row.Balance;
                 console.log(row);
                 if (row.Date) {
                     var date = row.Date.split(" ");
                     var newDate = date[0] + '/' + months[date[1]] + '/' + date[2];
 
-                    row.Date = newDate;
-
-                    result.push(row);
+                    result.push({
+                        Date: newDate,
+                        Description: row.Description,
+                        Amount: row['Paid In'] || -row['Paid Out']
+                    });
                     console.log(row);
                 }
                 else {
@@ -87,8 +87,7 @@ fs.readdir('./files-todo', (err, files) => {
                     header: [
                         { id: 'Date', title: 'Date' },
                         { id: 'Description', title: 'Description' },
-                        { id: 'Paid Out', title: 'Paid Out' },
-                        { id: 'Paid In', title: 'Paid In' },
+                        { id: 'Amount', title: 'Amount' },
                     ]
                 });
 
