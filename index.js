@@ -6,6 +6,9 @@ const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 
 const dir = resolve(__dirname, 'files-todo');
 const outDir = resolve(__dirname, 'files-output');
+if (!fs.existsSync(outDir)) {
+    fs.mkdirSync(outDir);
+}
 
 const months = {
     'Jan': '01',
