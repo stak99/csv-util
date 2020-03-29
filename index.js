@@ -24,25 +24,59 @@ const months = {
     'Nov': '11',
     'Dec': '12'
 }
+const escapes = [
+    'SCREWFIX DIRECT EDINBURGH,SIG'
+];
+
 
 fs.readdir('./files-todo', (err, files) => {
 
     files.forEach(file => {
         const filePath = resolve(dir, file);
         const result = [];
+
+        // Validate CSV
+
+        let contents = fs.readFileSync(filePath).toString();
+
+        // Escape the escapes list
+        escapes.map(escape => {
+            contents = contents.replace(escape, escape.replace(',', ' '));
+        });
+
+
+        // No more than 5 comas per line
+
+        contents.split('\n').map(line => {
+            if (line && (line.match(/,/g) || []).length !== 5) {
+                console.error("Issue with numnber of commas in the line, Please fix before continuing", line);
+                console.error('The file name', filePath);
+                process.exit(1);
+            }
+        });
+
+        // Update the escaped contents to source files
+        fs.writeFileSync(filePath, contents);
+
+
         fs.createReadStream(filePath)
             .pipe(csv())
             .on('data', (row) => {
                 delete row.Type;
                 delete row.Balance;
-
-                var date = row.Date.split(" ");
-                var newDate = date[0] + '/' + months[date[1]] + '/' + date[2];
-
-                row.Date = newDate;
-
-                result.push(row);
                 console.log(row);
+                if (row.Date) {
+                    var date = row.Date.split(" ");
+                    var newDate = date[0] + '/' + months[date[1]] + '/' + date[2];
+
+                    row.Date = newDate;
+
+                    result.push(row);
+                    console.log(row);
+                }
+                else {
+                    console.error("Row undefined", row);
+                }
             })
             .on('end', () => {
                 console.log(`CSV file ${file} successfully processed`);
